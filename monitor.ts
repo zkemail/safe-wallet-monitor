@@ -1,48 +1,64 @@
-import { config } from 'dotenv';
-import { ethers } from 'ethers';
+import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk";
+import dotenv from "dotenv";
 import axios from 'axios';
 
-// Load environment variables from .env file
-config();
+dotenv.config();
 
-// Destructure environment variables
-const { RPC_URL, MONITORED_ADDRESS, SLACK_WEBHOOK_URL } = process.env;
+const networkEnv = process.env.NETWORK;
+let network: Network;
+switch (networkEnv) {
+  case 'zksync':
+      network = Network.ZKSYNC_MAINNET;
+      break;
+  case 'base':
+      network = Network.BASE_MAINNET;
+      break;
+  default:
+      console.error("Invalid NETWORK. Please check the .env file.");
+      process.exit(1);
+}
 
-if (!RPC_URL || !MONITORED_ADDRESS || !SLACK_WEBHOOK_URL) {
-  console.error('Please set RPC_URL, MONITORED_ADDRESS, and SLACK_WEBHOOK_URL in your .env file.');
+const settings = {
+  apiKey: process.env.ALCHEMY_API_KEY || "", // Retrieve API key from .env
+  network: network,
+};
+
+const alchemy = new Alchemy(settings);
+
+// Define the addresses to be monitored
+const monitoredAddresses = process.env.MONITORED_ADDRESS;
+if(!monitoredAddresses){
+  console.error("MONITORED_ADDRESS environment variable is not set");
   process.exit(1);
 }
 
-// Initialize provider
-const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
-
-// Normalize the monitored address
-const monitoredAddress = MONITORED_ADDRESS.toLowerCase();
-
-// Function to send Slack notification
-const sendSlackNotification = async (tx: ethers.providers.TransactionResponse) => {
-  const message = {
-    text: `🚀 *New Transaction Detected*\n*From:* ${tx.from}\n*To:* ${tx.to}\n*Hash:* <https://explorer.url/tx/${tx.hash}|View Transaction>\n*Value:* ${ethers.utils.formatEther(tx.value)} ETH`,
-  };
+async function sendSlackNotification(tx: any) {
+  const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
+  if (!slackWebhookUrl) {
+    console.error("SLACK_WEBHOOK_URL environment variable is not set");
+    return;
+  }
 
   try {
-    await axios.post(SLACK_WEBHOOK_URL!, message);
-    console.log(`Notification sent for transaction: ${tx.hash}`);
+    await axios.post(slackWebhookUrl, {
+      text: `New Transaction on ${networkEnv}: ${JSON.stringify(tx)}`,
+    });
+    console.log("Slack notification sent successfully.");
   } catch (error) {
-    console.error('Error sending Slack notification:', error);
+    console.error("Failed to send Slack notification:", error);
   }
-};
+}
 
-// Listen for new transactions
-provider.on('pending', async (txHash) => {
-  try {
-    const tx = await provider.getTransaction(txHash);
-    if (tx && tx.from && tx.from.toLowerCase() === monitoredAddress) {
-      await sendSlackNotification(tx);
-    }
-  } catch (error) {
-    console.error(`Error processing transaction ${txHash}:`, error);
+// Subscribe to mined transactions in Alchemy
+alchemy.ws.on(
+  {
+    method: AlchemySubscription.MINED_TRANSACTIONS,
+    addresses: [{from: monitoredAddresses}],
+    includeRemoved: true,
+    hashesOnly: false,
+  },
+  async (tx) => {
+    console.log("New Transaction:", tx);
+    await sendSlackNotification(tx);
   }
-});
-
-console.log(`Monitoring transactions from address: ${MONITORED_ADDRESS} on ${RPC_URL}`);
+);
