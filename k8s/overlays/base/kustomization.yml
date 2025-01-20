@@ -1,0 +1,7 @@
+resources:
+- ../../base
+patchesStrategicMerge:
+- configmap-patch.yml
+nameSuffix: "-base"  
+commonLabels:  
+  network: base
