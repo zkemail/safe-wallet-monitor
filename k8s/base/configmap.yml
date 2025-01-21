@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: safe-monitor-config
+  namespace: safe-monitor  
 data:
   NETWORK: "default"
   MONITORED_ADDRESS: "0x03AC0b1b952C643d66A4Dc1fBc75118109cC074C"

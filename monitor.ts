@@ -41,7 +41,7 @@ async function sendSlackNotification(tx: any) {
 
   try {
     await axios.post(slackWebhookUrl, {
-      text: `New Transaction on ${networkEnv}: ${JSON.stringify(tx)}`,
+      text: `New Transaction on ${networkEnv}: ${JSON.stringify(tx.hash)}`,
     });
     console.log("Slack notification sent successfully.");
   } catch (error) {

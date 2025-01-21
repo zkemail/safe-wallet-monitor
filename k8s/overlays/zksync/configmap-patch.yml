@@ -2,5 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: safe-monitor-config
+  namespace: safe-monitor
 data:
   NETWORK: "zksync"
+  MONITORED_ADDRESS: "0x20c59B761Ab1B6a19d46D26ecfEFCdd78F1d2936"
