@@ -2,33 +2,53 @@
 
 This repository watches all transactions from the Safe Wallet and sends notifications to a specific Slack channel.
 
-# Install
+## Prerequisites
 
+To deploy this application, you need to have kustomize installed. You can install it using one of the following methods:
+
+```bash
+# Using Homebrew (macOS)
+brew install kustomize
+
+# Using curl
+curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+```
+
+## Install
+
+```bash
 npm install
+```
 
-# Build
+## Build
 
+```bash
 npm run build
+```
 
-# Start in you local
+## Start in your local
 
+```bash
 npm run start
+```
 
-# Build for docker
+## Build for docker
 
+```bash
 docker buildx create --use --name multiarch-builder
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t {your-docker-hub-username}/safe-wallet-monitor:latest \
   --push .
+```
 
-# Run docker
+## Run docker
 
+```bash
 docker run --env-file .env -d {your-docker-hub-username}/safe-wallet-monitor:latest
+```
 
-# Run with kubernetes
-
-# Configuration
+## Configuration
 
 Before running the application, make sure to set appropriate values in the configuration files:
 
@@ -36,6 +56,8 @@ Before running the application, make sure to set appropriate values in the confi
   - `SLACK_WEBHOOK_URL` with your actual Slack webhook URL, encoded in base64.
   - `ALCHEMY_API_KEY` with your actual Alchemy API key, encoded in base64.
 
-# Deploy
+## Deploy
 
+```bash
 kustomize build k8s/overlays/zksync | kubectl apply -f -
+```
