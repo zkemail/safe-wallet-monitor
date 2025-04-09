@@ -4,19 +4,31 @@ This repository watches all transactions from the Safe Wallet and sends notifica
 
 ## Prerequisites
 
+To run and deploy this application, you need:
+
 - Node.js (v16 or higher)
 - npm
 - Docker (for containerization)
 - Kubernetes cluster (for deployment)
 - Slack Webhook URL
 - Alchemy API Key
+- kustomize
+
+You can install kustomize using one of the following methods:
+
+```bash
+# Using Homebrew (macOS)
+brew install kustomize
+
+# Using curl
+curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+```
 
 ## Installation
 
 ```bash
 npm install
 ```
-
 
 ## Local Development
 
